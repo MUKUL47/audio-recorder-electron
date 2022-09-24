@@ -29,7 +29,7 @@ npm run build:start                 => build frontend build and run electron tog
 ### usage
 
 ```
-git clone git@github.com:MUKUL47/audio-recorder-electron.git && npm i && npm run build:start
+git clone git@github.com:MUKUL47/audio-recorder-electron.git && cd audio-recorder-electron && npm i && npm run start
 ```
 
 ### tested environments
