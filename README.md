@@ -37,3 +37,6 @@ git clone git@github.com:MUKUL47/audio-recorder-electron.git && cd audio-recorde
 ```
 Ubuntu 20.04.3 LTS & windows 10
 ```
+
+<img src="https://github.com/MUKUL47/audio-recorder-electron/blob/master/record-voice.PNG" />
+<img src="https://github.com/MUKUL47/audio-recorder-electron/blob/master/view-recordings.PNG" />
