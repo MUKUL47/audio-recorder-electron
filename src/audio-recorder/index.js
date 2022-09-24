@@ -1,6 +1,5 @@
 import React from "react";
 import AudioRecorder from "./audio-recorder";
-import MyRecordings from "./my-recordings";
 import Player from "./player";
 import Tabs from "./tabs";
 export default function Audio() {
@@ -14,12 +13,7 @@ export default function Audio() {
           },
           {
             name: "View Recordings",
-            child: (
-              <div>
-                <Player />
-                <MyRecordings />
-              </div>
-            ),
+            child: <Player />,
           },
         ]}
       />

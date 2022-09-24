@@ -1,8 +1,12 @@
-let electron = require("electron");
-let app = electron.app;
-let BrowserWindow = electron.BrowserWindow;
+const electron = require("electron");
+const path = require("path");
+const url = require("url");
+const app = electron.app;
+const ipcMain = electron.ipcMain;
+const BrowserWindow = electron.BrowserWindow;
 let mainWindow = null;
 const fs = require("fs");
+const IpcListeners = require("./listeners");
 app.on("window-all-closed", function () {
   if (process.platform != "darwin") {
     app.quit();
@@ -12,20 +16,30 @@ app.on("window-all-closed", function () {
 app.on("ready", async function () {
   try {
     mainWindow = new BrowserWindow({
-      minWidth: 400,
-      minHeight: 600,
+      width: 800,
+      // maxHeight: 1024,
+      height: 800,
       transparent: false,
       frame: true,
+      resizable: false,
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false,
+        enableRemoteModule: true,
+      },
     });
-    mainWindow.loadURL(__dirname + "/build/index.html");
-    console.log("file://" + __dirname + "build/index.html");
+    mainWindow.loadURL(
+      url.format({
+        pathname: path.join(__dirname, "build", "index.html"),
+        protocol: "file",
+        slashes: true,
+      })
+    );
+    // mainWindow.loadURL(__dirname + "/build/index.html");
     mainWindow.on("closed", function () {
       mainWindow = null;
-      //   const file = "./frontend/renderKey.js";
-      //   if (fs.existsSync(file)) {
-      //     fs.unlinkSync(file);
-      //   }
     });
+    new IpcListeners(mainWindow);
   } catch (ee) {
     console.log(ee);
   }

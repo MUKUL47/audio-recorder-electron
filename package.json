@@ -71,7 +71,8 @@
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
-    "start:electron" : "electron main-process/index.js"
+    "start:electron": "electron main-process/index.js",
+    "start:init": "npm run build && electron main-process/index.js"
   },
   "eslintConfig": {
     "extends": [

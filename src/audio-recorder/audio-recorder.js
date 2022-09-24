@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
-import useRecorder from "./recorder";
 import KeyboardVoiceIcon from "@mui/icons-material/KeyboardVoice";
 import PauseCircleIcon from "@mui/icons-material/PauseCircle";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import { ipcRenderer } from "electron";
+import React, { useEffect, useRef, useState } from "react";
 import AudioPlayer from "./audio-player";
+import useRecorder from "./recorder";
 export default function AudioRecorder() {
   const { start, stop, pause, resume, isRecording, isPaused, isInactive } =
     useRecorder();
@@ -13,6 +14,7 @@ export default function AudioRecorder() {
   const isInvalid = isInactive();
   const timerId = useRef({});
   const [newRecording, setNewRecording] = useState(null);
+  const [fileName, setFileName] = useState("");
   useEffect(() => {
     if (timer > -1 && !paused) {
       timerId.current = setTimeout(() => {
@@ -23,6 +25,12 @@ export default function AudioRecorder() {
       clearTimeout(timerId?.current);
     };
   }, [timer, paused]);
+  useEffect(() => {
+    ipcRenderer.on("SAVED_FILE", onFileSave);
+    return () => {
+      ipcRenderer.off("SAVED_FILE", onFileSave);
+    };
+  }, []);
   const toggleRecording = async () => {
     if (isInvalid) {
       start();
@@ -33,15 +41,37 @@ export default function AudioRecorder() {
       setTimer(-1);
       setPaused(true);
       setNewRecording(await stop());
+      setFileName(`my-audio-${Date.now()}`);
     }
+  };
+
+  const blobToB64 = (blob) => {
+    return new Promise((resolve) => {
+      const fileReader = new FileReader();
+      fileReader.onload = () => {
+        resolve(fileReader.result);
+      };
+      fileReader.readAsDataURL(blob);
+    });
+  };
+
+  const onFileSave = () => {
+    setNewRecording(null);
   };
 
   const toggleSaveRecording = async (answer) => {
     if (!answer) return setNewRecording(null);
+    if (fileName.trim().length === 0) return;
+    const separator = "data:audio/mp3;base64,";
+    ipcRenderer.send("SAVE_FILE", {
+      b64: await blobToB64(new Blob([newRecording], { type: "audio/mp3" })),
+      separator,
+      fileName,
+    });
   };
   return (
-    <div className="flex flex-col gap-5 m-3">
-      <div className="flex flex-col gap-5 items-center">
+    <div className="flex flex-col gap-5 m-3 h-full">
+      <div className="flex flex-col gap-5 items-center justify-center">
         <KeyboardVoiceIcon style={{ fontSize: 150, color: "#FFF" }} />
         {timer > -1 && (
           <div className="text-3xl text-white">{getDaysHourSeconds(timer)}</div>
@@ -69,35 +99,34 @@ export default function AudioRecorder() {
           {(newRecording && (
             <div className="flex flex-col items-center gap-5">
               <p className="text-3xl mb-5">Recording Completed</p>
-              {/* <audio controls>
-                <source
-                  src={URL.createObjectURL(
-                    new Blob([newRecording], { type: "audio/mp3" })
-                  )}
-                />
-              </audio> */}
               <AudioPlayer audio={newRecording} />
-              <div className="flex gap-2">
-                <button
-                  onClick={() => toggleSaveRecording(true)}
-                  className="p-3 w-44 rounded-md bg-green-700 text-white font-sans cursor-pointer text-xl px-5"
-                >
-                  Save Recording
-                </button>
+              <div className="flex gap-2 flex-col">
+                <input
+                  type="text"
+                  className="flex-1 py-2 p-1 text-black rounded-sm"
+                  placeholder="Enter file name"
+                  value={fileName}
+                  onChange={(e) => setFileName(e.target.value)}
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => toggleSaveRecording(true)}
+                    className="p-3 w-44 rounded-md bg-green-700 text-white font-sans cursor-pointer text-xl px-5">
+                    Save Recording
+                  </button>
 
-                <button
-                  onClick={() => toggleSaveRecording(false)}
-                  className="p-3 w-44 rounded-md bg-red-700 text-white font-sans cursor-pointer text-xl px-5"
-                >
-                  Cancel
-                </button>
+                  <button
+                    onClick={() => toggleSaveRecording(false)}
+                    className="p-3 w-44 rounded-md bg-red-700 text-white font-sans cursor-pointer text-xl px-5">
+                    Cancel
+                  </button>
+                </div>
               </div>
             </div>
           )) || (
             <button
               className="p-3 rounded-md bg-black text-white font-sans cursor-pointer text-xl px-5"
-              onClick={toggleRecording}
-            >
+              onClick={toggleRecording}>
               {(!isInvalid && "Stop Recording") || "Start Recording"}
             </button>
           )}
