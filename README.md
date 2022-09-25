@@ -24,6 +24,7 @@ npm run build:start                 => build frontend build and run electron tog
 5. select custom mp3 files from system
 6. delete functionality
 7. custom audio player with 1x, 1.5x, 2x playback time, pause, resume, next or previous track functionalities
+8. support only .mp3 files*****
 ```
 
 ### usage
